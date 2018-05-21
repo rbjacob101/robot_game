@@ -1,1 +1,2 @@
-# robot_game
+# Robot Game
+© 2018 - WIP
