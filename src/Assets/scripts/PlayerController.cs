@@ -98,7 +98,7 @@ public class PlayerController : MonoBehaviour {
 						if (!Interactable.HOVERING) {
 							navTarget.position = hit.point;
 						} else {
-							navTarget.position = Interactable.TARGET ? Interactable.TARGET.destination : hit.point;
+                            navTarget.position = Interactable.TARGET.destination;
 						}
 					}
 					navAgent.destination = navTarget.position;

@@ -105,7 +105,7 @@ public class Interactable : MonoBehaviour {
 	protected virtual void Start () {
 		inventory_GUI = InvGUI.GUI;
 		player_reference = PlayerController.thePlayer;
-		HoverYOffsetRelative = Screen.width / 1080 * HoverYOffsetRelative; //make HoverYOffsetRelative become fixed (non-relative)
+		HoverYOffsetRelative = (int) ((float) Screen.width / 1080 * HoverYOffsetRelative); //make HoverYOffsetRelative become fixed (non-relative)
 		renderer = gameObject.GetComponent<Renderer> ();
 
 		HoverObjectPrefab = Resources.Load ("HoverObject") as GameObject;
@@ -191,11 +191,11 @@ public class Interactable : MonoBehaviour {
     {
         if (usingItem)
         {
-            //the player has used an invalid item on object
-
+            //the player has used an invalid item on this
         } else
         {
-            //the player is not using an item on the object
+            //the player is not using an item on the this
+            AlertTextAnimationThread = (StartCoroutine(Alert("testing testing testing", new Color(1, 0, 0, 1), 100, 2, HoverYOffsetRelative)));
         }
     }
 
@@ -382,6 +382,51 @@ public class Interactable : MonoBehaviour {
 		}
 		StopCoroutine(HoverTextAnimationThread);
 	}
+
+    /* Calls an Alert which is text rising above the object that fades out over time.
+     * Meant to inform the player. Messages could be like "It is locked" or "Cannot be opened" */
+    private IEnumerator Alert(string text, Color color, float height, float time, float offset)
+    {
+        //initialize a border length relative to the screen's width
+        float BORDER_LENGTH = (float)Screen.width / 1080 * 100;
+        //current running time
+        var t = 0f;
+
+        GameObject AlertText = Instantiate(HoverObjectPrefab, GameObject.Find("PlayerGUI/Canvas").transform);
+        Text AlertTextComponent = AlertText.transform.Find("Text").GetComponent<Text>();
+        AlertTextComponent.text = text;
+        AlertTextComponent.color = color;
+        RectTransform AlertRect = AlertText.GetComponent<RectTransform>();
+        Vector3 start = Camera.main.WorldToScreenPoint(gameObject.transform.position) + new Vector3(0, offset);
+        Vector3 end = start + new Vector3(0, height);
+        if (end.y > Screen.height - BORDER_LENGTH)
+            end = new Vector3(end.x, Screen.height - BORDER_LENGTH);
+        if (end.x > Screen.width - BORDER_LENGTH)
+            end = new Vector3(Screen.width - BORDER_LENGTH, end.y);
+        else if (end.x < BORDER_LENGTH)
+            end = new Vector3(BORDER_LENGTH, end.y);
+
+        while (t < 1)
+        {
+            t += Time.deltaTime / time;
+
+            start = Camera.main.WorldToScreenPoint(gameObject.transform.position) + new Vector3(0, offset);
+            end = start + new Vector3(0, height);
+            if (end.y > Screen.height - BORDER_LENGTH)
+                end = new Vector3(end.x, Screen.height - BORDER_LENGTH);
+            if (end.x > Screen.width - BORDER_LENGTH)
+                end = new Vector3(Screen.width - BORDER_LENGTH, end.y);
+            else if (end.x < BORDER_LENGTH)
+                end = new Vector3(BORDER_LENGTH, end.y);
+
+            AlertRect.position = Vector3.Lerp(start, end, t);
+            AlertTextComponent.color = Color.Lerp(color, new Color(color.r, color.g, color.b, 0), t);
+            yield return null;
+        }
+
+        Destroy(AlertText);
+        StopCoroutine(AlertTextAnimationThread);
+    }
 
 }
 
