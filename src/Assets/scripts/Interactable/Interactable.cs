@@ -7,6 +7,12 @@ using UnityEngine.UI;
 using System.Linq;
 using System.Reflection;
 
+public enum LockType
+{
+    UNLOCKABLE,
+    INNACCESSIBLE
+}
+
 public class Interactable : MonoBehaviour {
 
 	public static Item USE_ITEM = null;
@@ -25,6 +31,8 @@ public class Interactable : MonoBehaviour {
 	public string HoverText = null; //text that hovers over item
 	public float InteractRadius = 0.5f; //distance from object that player must be under to interact with the object
 	public float ClickRadius = 75f; //distance from object 
+    public LockType lockType = LockType.UNLOCKABLE; //whether or not the object can be unlocked
+    public bool locked = false; //whether or not the object is locked
 
 	public Interaction[] actions; //list of items that when used on interactable cause an object to run a method
 	public bool hasInteractions = true; //if true, object can be interacted with items
@@ -268,6 +276,21 @@ public class Interactable : MonoBehaviour {
 		}
 	}
 
+    /* Will unlock the Interactable. If playerUnlocking is true, then it will
+     * force the player to stop and play an unlocking animation (the player
+     * is opening it directly). If false, an external mechanism (e.g. switch/
+     * button) is unlocking it */
+    public virtual void Unlock(bool playerUnlocking = true)
+    {
+        if (playerUnlocking)
+        {
+            //player is opening (play an animation)
+        } else
+        {
+            //opening from somewhere else
+        }
+    }
+
 	private void DestroyHoverText() {
 		StopCoroutine (HoverTextAnimationThread);
 		Destroy (HoverObjectInstance);
@@ -443,6 +466,11 @@ public class InteractableEditor : Editor {
 		//interact and click radii
 		script.InteractRadius = EditorGUILayout.Slider("Interact Radius", script.InteractRadius, 0f, 10f);
 		script.ClickRadius = EditorGUILayout.Slider("Click Radius", script.ClickRadius, 0f, 200f);
+
+        //LockType and locked
+        script.lockType = (LockType) EditorGUILayout.EnumPopup("Lock Type", script.lockType, GUILayout.MaxHeight(20f));
+        if (script.lockType == LockType.UNLOCKABLE)
+            script.locked = EditorGUILayout.Toggle("Locked", script.locked, GUILayout.MaxHeight(20f));
 
 		//interactions
 		int lastLength = script.actionsLength;
