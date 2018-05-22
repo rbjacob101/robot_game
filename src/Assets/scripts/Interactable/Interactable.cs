@@ -35,6 +35,7 @@ public class Interactable : MonoBehaviour {
 	private bool ExitThreadCalled = false;
     private Coroutine HoverTextAnimationThread;
     private Coroutine AlertTextAnimationThread;
+    private bool AlertRunning = false;
 
 	GameObject HoverObjectPrefab;
 	GameObject HoverObjectInstance;
@@ -115,15 +116,6 @@ public class Interactable : MonoBehaviour {
 	
 	// Update is called once per frame
 	protected virtual void Update () {
-
-		if (Input.anyKeyDown) {
-			if (TARGET) {
-				TARGET = null;
-			}
-			if (USE_ITEM) {
-				USE_ITEM = null;
-			}
-		}
 
 		if (InvGUI.USE_ITEM && HOVERING && Input.GetMouseButtonDown (0)) {
 			USE_ITEM = InvGUI.USE_ITEM;
@@ -387,8 +379,9 @@ public class Interactable : MonoBehaviour {
      * Meant to inform the player. Messages could be like "It is locked" or "Cannot be opened" */
     private IEnumerator Alert(string text, Color color, float height, float time, float offset)
     {
+        AlertRunning = true;
         //initialize a border length relative to the screen's width
-        float BORDER_LENGTH = (float)Screen.width / 1080 * 100;
+        float BORDER_LENGTH = (float)Screen.width / 1920f * 100f;
         //current running time
         var t = 0f;
 
@@ -425,7 +418,6 @@ public class Interactable : MonoBehaviour {
         }
 
         Destroy(AlertText);
-        StopCoroutine(AlertTextAnimationThread);
     }
 
 }

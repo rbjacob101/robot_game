@@ -91,7 +91,17 @@ public class PlayerController : MonoBehaviour {
 			
 			if (Input.GetMouseButtonUp (0)) {
 				if ((Time.time - clickTime) < 0.2) { //the player made a short click
-					RaycastHit hit;
+
+                    if (Interactable.TARGET && !Interactable.HOVERING)
+                    {
+                        Interactable.TARGET = null;
+                    }
+                    if (Interactable.USE_ITEM && !Interactable.HOVERING)
+                    {
+                        Interactable.USE_ITEM = null;
+                    }
+
+                    RaycastHit hit;
 					Ray ray = Camera.main.ScreenPointToRay (Input.mousePosition);
 
 					if (Physics.Raycast (ray, out hit, 20, ignoreRays, QueryTriggerInteraction.Ignore)) {
