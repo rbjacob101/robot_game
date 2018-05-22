@@ -1,9 +1,11 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
 using UnityEngine.UI;
 using System.Linq;
+using System.Reflection;
 
 public class Interactable : MonoBehaviour {
 
@@ -31,6 +33,8 @@ public class Interactable : MonoBehaviour {
 	new private Renderer renderer;
 	private bool HoverThreadCalled = false;
 	private bool ExitThreadCalled = false;
+    private Coroutine HoverTextAnimationThread;
+    private Coroutine AlertTextAnimationThread;
 
 	GameObject HoverObjectPrefab;
 	GameObject HoverObjectInstance;
@@ -166,9 +170,61 @@ public class Interactable : MonoBehaviour {
 		TARGET = this;
 	}
 
-	protected virtual void OnUse () {
-		print (USE_ITEM);
+    /* Diverges the Interactable's logic upon player interaction.
+     * Either will launch code for use of an item on object or
+     * use of Interatable without item. Not to be called directly
+     * or overriden in child classes. */
+	protected void OnUse () {
+        if (USE_ITEM != null)
+            UseItemOn(USE_ITEM);
+        else
+            OnDefaultUse();
+            
 	}
+
+    /* The default use of the object, feel free to override in
+     * derived classes. usingItem is true iff the player uses an
+     * invalid item on the Interactable, false if they use no item
+     * whatsoever. Not to be called directly child classes (let OnUse()
+     * and UseItemOn(Item item) call it */
+    public virtual void OnDefaultUse(bool usingItem = false)
+    {
+        if (usingItem)
+        {
+            //the player has used an invalid item on object
+
+        } else
+        {
+            //the player is not using an item on the object
+        }
+    }
+
+    /* Checks an Item against the list of Item objects in actions to see
+     * if said item has a predefined method to run if the item is such
+     * and runs the method. Not to be called directly or overriden
+     * in child classes. */
+    protected void UseItemOn(Item item)
+    {
+        for (int i = 0; i < actions.Length; i++)
+        {
+            if (item.id == actions[i].item.id)
+            {
+
+                Action myAction = () => { };
+                System.Type thisType = this.GetType();
+                MethodInfo mi = thisType.GetMethod(actions[i].method.Substring(0, actions[i].method.Length), BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance);
+
+                if (mi != null)
+                {
+                    myAction = (Action)Delegate.CreateDelegate(typeof(Action), this, mi);
+                }
+                myAction();
+                break;
+            }
+        }
+        OnDefaultUse(true);
+
+    }
 
 	protected virtual void OnHover () {
 		//OnHover is called when object is hovered over within radius
@@ -178,7 +234,17 @@ public class Interactable : MonoBehaviour {
 		if (HasHoverText) {
 			HoverObjectInstance = Instantiate (HoverObjectPrefab, GameObject.Find ("PlayerGUI/Canvas").transform);
 			HoverObjectInstance.transform.Find ("Text").GetComponent<Text> ().text = "";
-			StartCoroutine (AnimateText (HoverText, HoverObjectInstance.transform.Find ("Text").GetComponent<Text> ()));
+            RectTransform HoverRect = HoverObjectInstance.GetComponent<RectTransform>();
+            Vector3 RenderedPoint = Camera.main.WorldToScreenPoint(gameObject.transform.position) + new Vector3(0, HoverYOffsetRelative);
+            if (InScreenBounds(RenderedPoint))
+            {
+                HoverRect.position = RenderedPoint;
+            }
+            else
+            {
+                HoverRect.position = RenderedPoint - new Vector3(0, 2 * HoverYOffsetRelative + HoverRect.rect.height);
+            }
+            HoverTextAnimationThread = StartCoroutine (AnimateText (HoverText, HoverObjectInstance.transform.Find ("Text").GetComponent<Text> ()));
 		}
 		if (isHighlightable) {
 			SetMaterials (materials, outline);
@@ -212,7 +278,7 @@ public class Interactable : MonoBehaviour {
 	}
 
 	private void DestroyHoverText() {
-		StopCoroutine ("AnimateText");
+		StopCoroutine (HoverTextAnimationThread);
 		Destroy (HoverObjectInstance);
 	}
 
@@ -313,9 +379,8 @@ public class Interactable : MonoBehaviour {
 			ignore = false; //don't ignore next letter
 
 			yield return new WaitForSeconds (1/15f);
-
 		}
-		StopAllCoroutines ();
+		StopCoroutine(HoverTextAnimationThread);
 	}
 
 }
