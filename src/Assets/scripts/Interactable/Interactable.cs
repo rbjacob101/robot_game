@@ -35,7 +35,6 @@ public class Interactable : MonoBehaviour {
 	private bool ExitThreadCalled = false;
     private Coroutine HoverTextAnimationThread;
     private Coroutine AlertTextAnimationThread;
-    private bool AlertRunning = false;
 
 	GameObject HoverObjectPrefab;
 	GameObject HoverObjectInstance;
@@ -379,7 +378,6 @@ public class Interactable : MonoBehaviour {
      * Meant to inform the player. Messages could be like "It is locked" or "Cannot be opened" */
     private IEnumerator Alert(string text, Color color, float height, float time, float offset)
     {
-        AlertRunning = true;
         //initialize a border length relative to the screen's width
         float BORDER_LENGTH = (float)Screen.width / 1920f * 100f;
         //current running time
