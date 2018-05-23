@@ -21,7 +21,7 @@ public class Interactable : MonoBehaviour {
 	GameObject player_reference;
 	InvGUI inventory_GUI;
 
-	int HoverYOffsetRelative = 30; //number of pixels relative to 1080x1920 that hoverText is offset from renderer.bounds.center of interactable
+	protected int HoverYOffsetRelative = 30; //number of pixels relative to 1080x1920 that hoverText is offset from renderer.bounds.center of interactable
 	Material outline;
 	MaterialObject[] materials;
 
@@ -43,13 +43,13 @@ public class Interactable : MonoBehaviour {
 	private bool HoverThreadCalled = false;
 	private bool ExitThreadCalled = false;
     private Coroutine HoverTextAnimationThread;
-    private Coroutine AlertTextAnimationThread;
+    protected Coroutine AlertTextAnimationThread;
     private const float ALERTHOVERTIME = 2.75f;
 
 	GameObject HoverObjectPrefab;
 	GameObject HoverObjectInstance;
 
-	public Vector3 destination {
+	public virtual Vector3 destination {
 		get {
 			return transform.Find ("Dest").position;
 		}
@@ -189,21 +189,24 @@ public class Interactable : MonoBehaviour {
      * invalid item on the Interactable, false if they use no item
      * whatsoever. Not to be called directly in child classes (let OnUse()
      * and UseItemOn(Item item) call it */
-    public virtual void OnDefaultUse(bool usingItem = false, Item item = null)
+    protected virtual void OnDefaultUse(bool usingItem = false, Item item = null)
     {
         if (usingItem)
         {
             //the player has used an invalid item on this
             AlertTextAnimationThread = (StartCoroutine(Alert("It does nothing.", new Color(1, 1, 1, 1), 100, HoverYOffsetRelative)));
+            return;
         } else
         {
             //the player is not using an item on the this
             if (lockType == LockType.INNACCESSIBLE)
             {
                 AlertTextAnimationThread = (StartCoroutine(Alert("It can't be opened.", new Color(1, 1, 1, 1), 100, HoverYOffsetRelative)));
+                return;
             } else if (locked)
             {
                 AlertTextAnimationThread = (StartCoroutine(Alert("locked", new Color(1, 1, 1, 1), 100, HoverYOffsetRelative)));
+                return;
             }
         }
     }
@@ -214,8 +217,15 @@ public class Interactable : MonoBehaviour {
      * in child classes. */
     protected void UseItemOn(Item item)
     {
+        //for objects like pickup which currently can have no interactions
+        if (actions == null || actions.Length == 0)
+            actions = new Interaction[1];
+
         for (int i = 0; i < actions.Length; i++)
         {
+            if (actions[i].item == null)
+                continue;
+
             if (item.id == actions[i].item.id)
             {
                 interactionIsCallingInternally = true;
@@ -327,8 +337,8 @@ public class Interactable : MonoBehaviour {
         }
     }
 
-	private void DestroyHoverText() {
-		StopCoroutine (HoverTextAnimationThread);
+	protected void DestroyHoverText() {
+        if (HoverTextAnimationThread != null) {StopCoroutine(HoverTextAnimationThread);}
 		Destroy (HoverObjectInstance);
 	}
 
@@ -435,7 +445,7 @@ public class Interactable : MonoBehaviour {
 
     /* Calls an Alert which is text rising above the object that fades out over time.
      * Meant to inform the player. Messages could be like "It is locked" or "Cannot be opened" */
-    private IEnumerator Alert(string text, Color color, float height, float offset)
+    protected IEnumerator Alert(string text, Color color, float height, float offset)
     {
         //initialize a border length relative to the screen's width
         float BORDER_LENGTH = (float)Screen.width / 1920f * 100f;
@@ -522,8 +532,11 @@ public class InteractableEditor : Editor {
 			GUILayout.EndVertical ();
 		}
 		if (script.actionsLength != lastLength) {
-			var actions_copy = script.actions;
-			script.actions = new Interactable.Interaction[script.actionsLength];
+            var actions_copy = new Interactable.Interaction[script.actions.Length];
+            for (int i = 0; i < script.actions.Length; i++)
+                actions_copy[i] = script.actions[i];
+
+            script.actions = new Interactable.Interaction[script.actionsLength];
 			if (script.actions != null && script.actions.Length != 0) {
 				for (int i = 0; i < actions_copy.Length; i++) {
 					if (i >= script.actions.Length) {

@@ -24,6 +24,13 @@ public class InvGUI : MonoBehaviour {
 			InvGUI.GUI.UpdateInventory (InvGUI.GUI.myInv);
 		}
 	}
+
+    /* loads an inventory in doubles format.
+     * used from without. */
+     public static void Load(Inventory inv)
+    {
+        GUI.LoadInventory(inv);
+    }
 	#endregion
 
 	#region public init
@@ -295,14 +302,20 @@ public class InvGUI : MonoBehaviour {
 					if (Time.time - timePressedButton0 > CatchTime || Mathf.Abs((Input.mousePosition - clickMousePosition).magnitude) > doubleClickRadius) { //make sure that its NOT a double click
 						onHomeSlot = (hoverData.Equals (downSlot)) ? true : false; //is the player currently on home slot?
 						isTooltipLerping = false;
-					
-						slotsSingle [downSlot.SlotNumber].iconAlphaLerp = false; //if they are hold-hovering over anything else than the one they came, hide the downSlot item
-						slotsSingle [downSlot.SlotNumber].quantityLerp = false;
-						if (myInv.RetrieveInventoryArray () [downSlot.SlotNumber].ThisItem) { // to show the dragIcon, the downSlot must have an icon
-							isDragIconLerping = true; //if they are hold-hovering over anything else, show the dragIcon
-						} else {
-							isDragIconLerping = false;
-						}
+
+                        if (hoverData.IsHover && downSlot.IsHover)
+                        {
+                            slotsSingle[downSlot.SlotNumber].iconAlphaLerp = false; //if they are hold-hovering over anything else than the one they came, hide the downSlot item
+                            slotsSingle[downSlot.SlotNumber].quantityLerp = false;
+                            if (myInv.RetrieveInventoryArray()[downSlot.SlotNumber].ThisItem)
+                            { // to show the dragIcon, the downSlot must have an icon
+                                isDragIconLerping = true; //if they are hold-hovering over anything else, show the dragIcon
+                            }
+                            else
+                            {
+                                isDragIconLerping = false;
+                            }
+                        }
 					} else if (Mathf.Abs((Input.mousePosition - clickMousePosition).magnitude) < doubleClickRadius) { //without this, clicking randomly on an item will delete it
 						onHomeSlot = (hoverData.Equals (downSlot)) ? true : false;
 					}
@@ -371,14 +384,14 @@ public class InvGUI : MonoBehaviour {
 
 				} else if (Input.GetMouseButtonUp (0)) {
 					//the player just released the mouse button
-					if (!onHomeSlot && hoverData.IsHover && isMouseOver (WrapperPanel)) { 							//they were on a slot which was not the one they came from
+					if (!onHomeSlot && (downSlot.IsHover && myInv.RetrieveInventoryArray()[downSlot.SlotNumber].ThisItem) && hoverData.IsHover && isMouseOver (WrapperPanel)) { 							//they were on a slot which was not the one they came from
 						myInv.MoveItem (myInv, myInv, downSlot.SlotNumber, hoverData.SlotNumber);
 						UpdateInventory (myInv);
 						if (!tooltipAnimating && onHomeSlot) {
 							StopAllCoroutines ();
 						}
 					} else {																						//they released on the slot they came from or on no slot at all
-						if ((!hoverData.IsHover || hoverData.SlotNumber == downSlot.SlotNumber) && myInv.RetrieveInventoryArray () [downSlot.SlotNumber].ThisItem) {
+						if (downSlot.IsHover && (hoverData.SlotNumber == downSlot.SlotNumber || !hoverData.IsHover) && myInv.RetrieveInventoryArray () [downSlot.SlotNumber].ThisItem) {
 							slotsSingle [downSlot.SlotNumber].iconAlphaLerp = true;
 							if (myInv.RetrieveInventoryArray () [downSlot.SlotNumber].Quantity != 1) {
 								slotsSingle [downSlot.SlotNumber].quantityLerp = true;
@@ -451,7 +464,7 @@ public class InvGUI : MonoBehaviour {
 							}
 
 						} else if (hoverData.Inv.Equals (currentObjectInv)) {
-							if (currentObjectInv.RetrieveInventoryArray () [hoverData.SlotNumber].ThisItem && !isTooltipLerping && isMouseOver (DoubleObjectInv.GetComponent<RectTransform> ())) { //if player is hovering over a slot and the tooltip is not already being displayed
+							if (isMouseOver(DoubleObjectInv.GetComponent<RectTransform>()) && currentObjectInv.RetrieveInventoryArray () [hoverData.SlotNumber].ThisItem && !isTooltipLerping) { //if player is hovering over a slot and the tooltip is not already being displayed
 								//do slot script animation
 								isTooltipLerping = true;
 

@@ -8,12 +8,19 @@ public class InteractableContainer : Interactable {
 	//inventory that the container uses
 	public Inventory inventory;
 
-
-
 	void Reset() {
 		//set the default inventory
 		inventory = gameObject.GetComponent<Inventory>() ? gameObject.GetComponent<Inventory>() : null;
 	}
+
+    protected override void OnDefaultUse(bool usingItem = false, Item item = null)
+    {
+        base.OnDefaultUse(usingItem, item);
+        if (!locked)
+        {
+            InvGUI.Load(inventory);
+        }
+    }
 }
 	
 [CustomEditor(typeof(InteractableContainer), true)]

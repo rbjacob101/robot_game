@@ -10,15 +10,22 @@ public class Inventory : MonoBehaviour {
 	new public string name;
 	int MaxSize;
 	public SlotData[] inventory;
-	public bool isPlayerInventory;
+	public bool isPlayerInventory = false;
 
-	//TODO: make this the global class for all inventory item storage and such
+    //TODO: make this the global class for all inventory item storage and such
 
-	void Start () {
-		if (isPlayerInventory) {
-			Player = this;
-			MaxSize = GameObject.Find ("WrapperPanel").transform.Find("SlotWrapper/SlotGrid").transform.GetComponentsInChildren<SlotScript> ().Length;
-		}
+    void Awake()
+    {
+        if (Player == null && isPlayerInventory)
+        {
+            Player = this;
+            MaxSize = GameObject.Find("WrapperPanel").transform.Find("SlotWrapper/SlotGrid").transform.GetComponentsInChildren<SlotScript>().Length;
+        }
+        else if (Player != this && isPlayerInventory)
+            Destroy(GetComponent<Inventory>());
+    }
+
+    void Start () {
 
 		Validate_Inventory ();
 

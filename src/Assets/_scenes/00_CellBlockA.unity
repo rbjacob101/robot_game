@@ -47993,6 +47993,8 @@ GameObject:
   - component: {fileID: 2130098949}
   - component: {fileID: 2130098953}
   - component: {fileID: 2130098954}
+  - component: {fileID: 2130098948}
+  - component: {fileID: 2130098955}
   m_Layer: 9
   m_Name: TestInteractable
   m_TagString: Untagged
@@ -48000,6 +48002,32 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 4294967288
   m_IsActive: 1
+--- !u!114 &2130098948
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 2130098947}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ffda28b77e3314f4eada93658859c91e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  isInteractable: 1
+  isHighlightable: 1
+  HasHoverText: 1
+  HoverText: Chest
+  InteractRadius: 0.5
+  ClickRadius: 75
+  lockType: 0
+  locked: 0
+  interactionIsCallingInternally: 0
+  actions:
+  - item: {fileID: 0}
+    method: 
+  hasInteractions: 0
+  actionsLength: 1
+  inventory: {fileID: 2130098953}
 --- !u!23 &2130098949
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -48080,15 +48108,45 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   name: CHEST
-  inventory: []
-  isPlayerInventory: 0
+  inventory:
+  - ThisItem: {fileID: 0}
+    Quantity: 0
+  - ThisItem: {fileID: 0}
+    Quantity: 0
+  - ThisItem: {fileID: 0}
+    Quantity: 0
+  - ThisItem: {fileID: 0}
+    Quantity: 0
+  - ThisItem: {fileID: 0}
+    Quantity: 0
+  - ThisItem: {fileID: 0}
+    Quantity: 0
+  - ThisItem: {fileID: 0}
+    Quantity: 0
+  - ThisItem: {fileID: 0}
+    Quantity: 0
+  - ThisItem: {fileID: 0}
+    Quantity: 0
+  - ThisItem: {fileID: 0}
+    Quantity: 0
+  - ThisItem: {fileID: 0}
+    Quantity: 0
+  - ThisItem: {fileID: 0}
+    Quantity: 0
+  - ThisItem: {fileID: 0}
+    Quantity: 0
+  - ThisItem: {fileID: 0}
+    Quantity: 0
+  - ThisItem: {fileID: 0}
+    Quantity: 0
+  isPlayerInventory: 1
 --- !u!114 &2130098954
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 2130098947}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 43bd8e74a72da444da3048942855637f, type: 3}
   m_Name: 
@@ -48107,6 +48165,35 @@ MonoBehaviour:
     method: Unlock
   hasInteractions: 1
   actionsLength: 1
+--- !u!114 &2130098955
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 2130098947}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0a67c8266a697444f84310d82184ac47, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  isInteractable: 1
+  isHighlightable: 1
+  HasHoverText: 1
+  HoverText: pickup
+  InteractRadius: 0.5
+  ClickRadius: 75
+  lockType: 0
+  locked: 0
+  interactionIsCallingInternally: 0
+  actions:
+  - item: {fileID: 0}
+    method: 
+  hasInteractions: 0
+  actionsLength: 1
+  items:
+  - ThisItem: {fileID: 11400000, guid: bdfdbe8416b37d540983937a849ff136, type: 2}
+    Quantity: 1
+  itemsLength: 1
 --- !u!1 &2139124696
 GameObject:
   m_ObjectHideFlags: 0
