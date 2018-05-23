@@ -147,11 +147,6 @@ public class InvGUI : MonoBehaviour {
 
 	// Update is called once per frame
 	void Update () {
-		if (USE_ITEM) {
-			if (Input.anyKeyDown) {
-				USE_ITEM = null;
-			}
-		}
 
 		if (Input.GetKeyDown(KeyCode.Escape)) {
 			if (isSingle) { 
@@ -383,7 +378,7 @@ public class InvGUI : MonoBehaviour {
 							StopAllCoroutines ();
 						}
 					} else {																						//they released on the slot they came from or on no slot at all
-						if (!hoverData.IsHover && myInv.RetrieveInventoryArray () [downSlot.SlotNumber].ThisItem) {
+						if ((!hoverData.IsHover || hoverData.SlotNumber == downSlot.SlotNumber) && myInv.RetrieveInventoryArray () [downSlot.SlotNumber].ThisItem) {
 							slotsSingle [downSlot.SlotNumber].iconAlphaLerp = true;
 							if (myInv.RetrieveInventoryArray () [downSlot.SlotNumber].Quantity != 1) {
 								slotsSingle [downSlot.SlotNumber].quantityLerp = true;

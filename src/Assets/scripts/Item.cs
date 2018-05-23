@@ -17,8 +17,8 @@ public class Item : ScriptableObject {
 	//determines if the item is destroyed upon use
 	public bool destroyOnUse = true;
 
-	/* determines if the item closes the inventory (lockpicks, keys, etc.)
-	 * or if it is purely used inside inventory (healthpacks, food, etc.) 
+	/* false if the item closes the inventory (lockpicks, keys, etc.)
+	 * or true if it is purely used inside inventory (healthpacks, food, etc.) 
 	*/
 	public bool inventoryOnly = false;
 
@@ -28,8 +28,6 @@ public class Item : ScriptableObject {
 			Inventory.Player.RemoveItemByID (this.id);
 			InvGUI.UpdateGUI ();
 		}
-
-		//what the item does
 
 		//create new classes and code new items, inheriting from this base "Item" class
 		//use "override" access modifier and don't forget to call base.use(); at end of method

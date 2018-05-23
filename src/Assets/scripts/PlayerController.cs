@@ -92,11 +92,11 @@ public class PlayerController : MonoBehaviour {
 			if (Input.GetMouseButtonUp (0)) {
 				if ((Time.time - clickTime) < 0.2) { //the player made a short click
 
-                    if (Interactable.TARGET && !Interactable.HOVERING)
+                    if (Interactable.TARGET && !Interactable.HOVERING && !InvGUI.GUI_OPEN)
                     {
                         Interactable.TARGET = null;
                     }
-                    if (Interactable.USE_ITEM && !Interactable.HOVERING)
+                    if (Interactable.USE_ITEM && !Interactable.HOVERING && !InvGUI.GUI_OPEN)
                     {
                         Interactable.USE_ITEM = null;
                     }

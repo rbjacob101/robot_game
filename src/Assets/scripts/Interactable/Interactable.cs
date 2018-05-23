@@ -33,6 +33,7 @@ public class Interactable : MonoBehaviour {
 	public float ClickRadius = 75f; //distance from object 
     public LockType lockType = LockType.UNLOCKABLE; //whether or not the object can be unlocked
     public bool locked = false; //whether or not the object is locked
+    public bool interactionIsCallingInternally = false; //whether or not an interact method is being called from within the class
 
 	public Interaction[] actions; //list of items that when used on interactable cause an object to run a method
 	public bool hasInteractions = true; //if true, object can be interacted with items
@@ -43,6 +44,7 @@ public class Interactable : MonoBehaviour {
 	private bool ExitThreadCalled = false;
     private Coroutine HoverTextAnimationThread;
     private Coroutine AlertTextAnimationThread;
+    private const float ALERTHOVERTIME = 2.75f;
 
 	GameObject HoverObjectPrefab;
 	GameObject HoverObjectInstance;
@@ -126,6 +128,7 @@ public class Interactable : MonoBehaviour {
 
 		if (InvGUI.USE_ITEM && HOVERING && Input.GetMouseButtonDown (0)) {
 			USE_ITEM = InvGUI.USE_ITEM;
+            InvGUI.USE_ITEM = null;
 		}
 
 		//is the player clicking on the object
@@ -184,17 +187,24 @@ public class Interactable : MonoBehaviour {
     /* The default use of the object, feel free to override in
      * derived classes. usingItem is true iff the player uses an
      * invalid item on the Interactable, false if they use no item
-     * whatsoever. Not to be called directly child classes (let OnUse()
+     * whatsoever. Not to be called directly in child classes (let OnUse()
      * and UseItemOn(Item item) call it */
-    public virtual void OnDefaultUse(bool usingItem = false)
+    public virtual void OnDefaultUse(bool usingItem = false, Item item = null)
     {
         if (usingItem)
         {
             //the player has used an invalid item on this
+            AlertTextAnimationThread = (StartCoroutine(Alert("It does nothing.", new Color(1, 1, 1, 1), 100, HoverYOffsetRelative)));
         } else
         {
             //the player is not using an item on the this
-            AlertTextAnimationThread = (StartCoroutine(Alert("testing testing testing", new Color(1, 0, 0, 1), 100, 2, HoverYOffsetRelative)));
+            if (lockType == LockType.INNACCESSIBLE)
+            {
+                AlertTextAnimationThread = (StartCoroutine(Alert("It can't be opened.", new Color(1, 1, 1, 1), 100, HoverYOffsetRelative)));
+            } else if (locked)
+            {
+                AlertTextAnimationThread = (StartCoroutine(Alert("locked", new Color(1, 1, 1, 1), 100, HoverYOffsetRelative)));
+            }
         }
     }
 
@@ -208,20 +218,27 @@ public class Interactable : MonoBehaviour {
         {
             if (item.id == actions[i].item.id)
             {
-
+                interactionIsCallingInternally = true;
                 Action myAction = () => { };
                 System.Type thisType = this.GetType();
-                MethodInfo mi = thisType.GetMethod(actions[i].method.Substring(0, actions[i].method.Length), BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance);
+                MethodInfo mi = thisType.GetMethod(actions[i].method, BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance);
 
                 if (mi != null)
                 {
                     myAction = (Action)Delegate.CreateDelegate(typeof(Action), this, mi);
                 }
                 myAction();
-                break;
+
+                //remove the item from the inventory if it is marked as destroyOnUse
+                if (USE_ITEM.destroyOnUse)
+                    Inventory.Player.RemoveItemByID(USE_ITEM.id);
+                USE_ITEM = null;
+                interactionIsCallingInternally = false;
+                return;
             }
         }
-        OnDefaultUse(true);
+        OnDefaultUse(true, USE_ITEM);
+        USE_ITEM = null;
 
     }
 
@@ -276,18 +293,37 @@ public class Interactable : MonoBehaviour {
 		}
 	}
 
-    /* Will unlock the Interactable. If playerUnlocking is true, then it will
+    /* Will unlock the Interactable. If interactionIsCallingInternally is true, then it will
      * force the player to stop and play an unlocking animation (the player
      * is opening it directly). If false, an external mechanism (e.g. switch/
-     * button) is unlocking it */
-    public virtual void Unlock(bool playerUnlocking = true)
+     * button) is unlocking it. Feel free to override in child classes. */
+    public virtual void Unlock()
     {
-        if (playerUnlocking)
+        if (interactionIsCallingInternally)
         {
             //player is opening (play an animation)
+            if (lockType == LockType.INNACCESSIBLE)
+            {
+                AlertTextAnimationThread = StartCoroutine(Alert("It cannot be opened.", new Color(1, 1, 1, 1), HoverYOffsetRelative * 3, HoverYOffsetRelative));
+            } else
+            {
+                if (locked)
+                {
+                    AlertTextAnimationThread = StartCoroutine(Alert("unlocked", new Color(1, 1, 1), HoverYOffsetRelative * 3, HoverYOffsetRelative));
+                    locked = false;
+                } else
+                {
+                    AlertTextAnimationThread = StartCoroutine(Alert("It is already unlocked.", new Color(1, 1, 1), HoverYOffsetRelative * 3, HoverYOffsetRelative));
+                }
+                
+            }
         } else
         {
             //opening from somewhere else
+            if (locked)
+            {
+                locked = false;
+            }
         }
     }
 
@@ -399,7 +435,7 @@ public class Interactable : MonoBehaviour {
 
     /* Calls an Alert which is text rising above the object that fades out over time.
      * Meant to inform the player. Messages could be like "It is locked" or "Cannot be opened" */
-    private IEnumerator Alert(string text, Color color, float height, float time, float offset)
+    private IEnumerator Alert(string text, Color color, float height, float offset)
     {
         //initialize a border length relative to the screen's width
         float BORDER_LENGTH = (float)Screen.width / 1920f * 100f;
@@ -422,7 +458,7 @@ public class Interactable : MonoBehaviour {
 
         while (t < 1)
         {
-            t += Time.deltaTime / time;
+            t += Time.deltaTime / ALERTHOVERTIME;
 
             start = Camera.main.WorldToScreenPoint(gameObject.transform.position) + new Vector3(0, offset);
             end = start + new Vector3(0, height);

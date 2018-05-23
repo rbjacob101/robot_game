@@ -16,3 +16,5 @@ MonoBehaviour:
   tooltip: used to talk over long distances
   icon: {fileID: 21300000, guid: 03be581cbb644a14a9478ed4d3b5cce4, type: 3}
   isEssential: 1
+  destroyOnUse: 0
+  inventoryOnly: 0
